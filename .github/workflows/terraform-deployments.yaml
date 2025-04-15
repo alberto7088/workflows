@@ -1,0 +1,59 @@
+name: Terraform Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Environment to deploy to (e.g., dev, prod)"
+        type: string
+        required: true
+        default: dev
+      terraform-action:
+        description: "Terraform Command: plan or apply"
+        type: string
+        required: false
+        default: plan
+      terraform-directory:
+        description:
+        type: string
+        required: false
+        default: infra/terraform
+
+jobs:
+  deploy-terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        run: |
+          echo "CONFIG_DIR=configs/${{ inputs.environment }}" >> $GITHUB_ENV
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Terraform Init
+        run: |
+          cd ${{ inputs.terraform-directory }}
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="prefix=${{ inputs.environment }}/terraform/state"
+
+      - name: Terraform Plan
+        if: ${{ inputs.terraform-action == 'plan' }}
+        run: |
+          cd ${{ inputs.terraform-directory }}
+          terraform plan -lock=false -out=tfplan
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Terraform Apply
+        if: ${{ inputs.terraform-action == 'apply' }}
+        run: |
+          cd ${{ inputs.terraform-directory }}
+          terraform apply --auto-approve
