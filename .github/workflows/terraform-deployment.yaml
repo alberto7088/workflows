@@ -39,6 +39,9 @@ on:
       GCP_PROJECT:
         description: "Name of the GCP project"
         required: true
+      STATE_SA_EMAIL:
+        description: "Service Account email"
+        required: true
 
 jobs:
   deploy-terraform:
@@ -46,6 +49,7 @@ jobs:
     env:
       TF_VAR_gcp_project: ${{ secrets.GCP_PROJECT }}
       TF_VAR_tf_state_bucket: ${{ secrets.TF_STATE_BUCKET }}
+      TF_VAR_state_sa_email: ${{ secrets.STATE_SA_EMAIL}}
 
     steps:
       - name: Checkout repository
