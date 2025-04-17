@@ -23,19 +23,29 @@ on:
         type: string
         required: false
         default: "config/${{ inputs.environment }}.tfvars"
-      gcp-credentials:
-        type: string
-      tf-state-bucket:
-        type: string
-      gcp-project:
-        type: string
+#      gcp-credentials:
+#        type: string
+#      tf-state-bucket:
+#        type: string
+#      gcp-project:
+#        type: string
+    secrets:
+      GCP_CREDENTIALS:
+        description: "Service account JSON"
+        required: true
+      TF_STATE_BUCKET:
+        description: "GCS bucket for Terraform state"
+        required: true
+      GCP_PROJECT:
+        description: "Name of the GCP project"
+        required: true
 
 jobs:
   deploy-terraform:
     runs-on: ubuntu-latest
     env:
-      TF_VAR_gcp_project: ${{ input.gcp-project }}
-      TF_VAR_tf_state_bucket: ${{ input.tf-state-bucket }}
+      TF_VAR_gcp_project: ${{ secrets.GCP_PROJECT }}
+      TF_VAR_tf_state_bucket: ${{ input.TF_STATE_BUCKET }}
 
     steps:
       - name: Checkout repository
@@ -51,13 +61,13 @@ jobs:
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
-          credentials_json: ${{ inputs.gcp-credentials }}
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
       - name: Terraform Init
         run: |
           cd ${{ inputs.terraform-directory }}
           terraform init \
-            -backend-config="bucket=${{ input.tf-state-bucket }}" \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
             -backend-config="prefix=${{ inputs.environment }}/terraform/state"
 
       - name: Terraform Plan
