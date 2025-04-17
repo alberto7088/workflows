@@ -23,13 +23,19 @@ on:
         type: string
         required: false
         default: "config/${{ inputs.environment }}.tfvars"
+      gcp-credentials:
+        type: string
+      tf-state-bucket:
+        type: string
+      gcp-project:
+        type: string
 
 jobs:
   deploy-terraform:
     runs-on: ubuntu-latest
     env:
-      TF_VAR_gcp_project: ${{ input.GCP_PROJECT }}
-      TF_VAR_tf_state_bucket: ${{ input.TF_STATE_BUCKET }}
+      TF_VAR_gcp_project: ${{ input.gcp-project }}
+      TF_VAR_tf_state_bucket: ${{ input.tf-state-bucket }}
 
     steps:
       - name: Checkout repository
@@ -45,13 +51,13 @@ jobs:
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
-          credentials_json: ${{ inputs.GCP_CREDENTIALS }}
+          credentials_json: ${{ inputs.gcp-credentials }}
 
       - name: Terraform Init
         run: |
           cd ${{ inputs.terraform-directory }}
           terraform init \
-            -backend-config="bucket=${{ inputs.TF_STATE_BUCKET }}" \
+            -backend-config="bucket=${{ input.tf-state-bucket }}" \
             -backend-config="prefix=${{ inputs.environment }}/terraform/state"
 
       - name: Terraform Plan
