@@ -37,9 +37,10 @@ jobs:
   deploy-terraform:
     runs-on: ubuntu-latest
     env:
-      TF_VAR_gcp_project: ${{ secrets.GCP_PROJECT }}
-      TF_VAR_tf_state_bucket: ${{ secrets.TF_STATE_BUCKET }}
-      TF_VAR_state_sa_email: ${{ secrets.STATE_SA_EMAIL}}
+      TF_VAR_gcp_project      : ${{ secrets.GCP_PROJECT }}
+      TF_VAR_tf_state_bucket  : ${{ secrets.TF_STATE_BUCKET }}
+      TF_VAR_state_sa_email   : ${{ secrets.STATE_SA_EMAIL}}
+      TF_VAR_invoker_member   : ${{ secrets.INVOKER_MEMBER }}
 
     steps:
       - name: Checkout repository
