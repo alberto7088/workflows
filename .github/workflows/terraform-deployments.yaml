@@ -18,10 +18,19 @@ on:
         type: string
         required: false
         default: infra/terraform
+      tfvars-file:
+        description: "Path to your environment tfvars file"
+        type: string
+        required: false
+        default: "config/${{ inputs.environment }}.tfvars"
 
 jobs:
   deploy-terraform:
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_gcp_project: ${{ input.GCP_PROJECT }}
+      TF_VAR_tf_state_bucket: ${{ input.TF_STATE_BUCKET }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,24 +45,24 @@ jobs:
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+          credentials_json: ${{ inputs.GCP_CREDENTIALS }}
 
       - name: Terraform Init
         run: |
           cd ${{ inputs.terraform-directory }}
           terraform init \
-            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="bucket=${{ inputs.TF_STATE_BUCKET }}" \
             -backend-config="prefix=${{ inputs.environment }}/terraform/state"
 
       - name: Terraform Plan
         if: ${{ inputs.terraform-action == 'plan' }}
         run: |
           cd ${{ inputs.terraform-directory }}
-          terraform plan -lock=false -out=tfplan
+          terraform plan -lock=false -var-file="${{ inputs.tfvars-file }}" -out=tfplan
           terraform show -no-color tfplan > plan.txt
 
       - name: Terraform Apply
         if: ${{ inputs.terraform-action == 'apply' }}
         run: |
           cd ${{ inputs.terraform-directory }}
-          terraform apply --auto-approve
+          terraform apply -var-file="${{ inputs.tfvars-file }}" --auto-approve
