@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_VAR_gcp_project: ${{ secrets.GCP_PROJECT }}
-      TF_VAR_tf_state_bucket: ${{ input.TF_STATE_BUCKET }}
+      TF_VAR_tf_state_bucket: ${{ secrets.TF_STATE_BUCKET }}
 
     steps:
       - name: Checkout repository
