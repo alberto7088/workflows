@@ -18,17 +18,7 @@ on:
         type: string
         required: false
         default: infra/terraform
-      tfvars-file:
-        description: "Path to your environment tfvars file"
-        type: string
-        required: false
-        default: "config/${{ inputs.environment }}.tfvars"
-#      gcp-credentials:
-#        type: string
-#      tf-state-bucket:
-#        type: string
-#      gcp-project:
-#        type: string
+
     secrets:
       GCP_CREDENTIALS:
         description: "Service account JSON"
@@ -67,6 +57,9 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
+      - name: Compute tfvars file path
+        run: echo "TFVARS_FILE=config/${{ inputs.environment }}.tfvars" >> $GITHUB_ENV
+
       - name: Terraform Init
         run: |
           cd ${{ inputs.terraform-directory }}
@@ -78,11 +71,11 @@ jobs:
         if: ${{ inputs.terraform-action == 'plan' }}
         run: |
           cd ${{ inputs.terraform-directory }}
-          terraform plan -lock=false -var-file="${{ inputs.tfvars-file }}" -out=tfplan
+          terraform plan -lock=false -var-file="$TFVARS_FILE" -out=tfplan
           terraform show -no-color tfplan > plan.txt
 
       - name: Terraform Apply
         if: ${{ inputs.terraform-action == 'apply' }}
         run: |
           cd ${{ inputs.terraform-directory }}
-          terraform apply -var-file="${{ inputs.tfvars-file }}" --auto-approve
+          terraform apply -var-file="$TFVARS_FILE" --auto-approve
