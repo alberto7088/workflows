@@ -32,6 +32,9 @@ on:
       STATE_SA_EMAIL:
         description: "Service Account email"
         required: true
+      INVOKER_MEMBER:
+        description: "SA invoker service"
+        required: true
 
 jobs:
   deploy-terraform:
