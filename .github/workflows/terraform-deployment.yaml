@@ -83,3 +83,9 @@ jobs:
         run: |
           cd ${{ inputs.terraform-directory }}
           terraform apply -var-file="$TFVARS_FILE" --auto-approve
+
+      - name: Terraform Destroy
+        if: ${{ inputs.terraform-action == 'destroy' }}
+        run: |
+          cd ${{ inputs.terraform-directory }}
+          terraform destroy -var-file="$TFVARS_FILE" --auto-approve
